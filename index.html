@@ -1211,6 +1211,24 @@ h1,h2,h3{letter-spacing:-.01em;font-weight:700}
 .joy-content p{font-size:15.5px;margin-bottom:22px}
 @media(max-width:1024px){.num-grid.four{grid-template-columns:repeat(2,1fr)}.two-col,.meal-grid,.num-grid.three{grid-template-columns:1fr}}
 @media(max-width:768px){.num-grid,.num-grid.four{grid-template-columns:1fr}.text-card{padding:24px 20px}.hero-logo-art{width:min(62vw,250px)}}
+
+/* ===== Mobile hero fixes (taller logo) ===== */
+@media(max-width:900px){
+  .hero-slider{min-height:900px}
+  .hero-slide{padding:322px 24px 120px}
+  .hero-logo-art{top:92px;width:min(44vw,180px);border-radius:28px}
+  .hero-slide-content{max-width:100%}
+}
+@media(max-width:768px){
+  .hero-logo-art{width:min(44vw,180px)}
+  .brand-mark{width:42px;height:48px}.footer .brand-mark{width:50px;height:56px}
+  .hero-kicker{font-size:12px;padding:6px 14px}
+  .hero-slide h1{font-size:clamp(30px,8.6vw,40px);margin-bottom:16px}
+  .hero-slide p{font-size:15.5px;line-height:1.6}
+  .hero-slide .hero-actions{gap:10px;margin-top:22px}
+  .hero-slide .btn{padding:12px 20px;font-size:15px}
+}
+@media(max-width:380px){.brand-name small{display:none}.hero-logo-art{width:150px}.hero-slide{padding-top:300px}}
 </style>
 </head>
 <body>
