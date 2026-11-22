@@ -1522,16 +1522,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </script>
 <script>
-/* ===== Enquiry form – sends every submission to your email =====
-   OPTION A (recommended, most reliable): Web3Forms
-     1. Go to https://web3forms.com, type the email that should receive enquiries, click "Create Access Key".
-     2. They email you a key. Paste it between the quotes on the WEB3FORMS_ACCESS_KEY line below.
-   OPTION B (used automatically if no key is pasted): FormSubmit.co -> RECEIVER_EMAIL below.
-     Needs a one-time activation: after the first test submit, open the email FormSubmit sends to
-     RECEIVER_EMAIL (check Spam) and click "Activate". The website must be live online, not opened as a file. */
+/* ===== Enquiry form – every submission is emailed to RECEIVER_EMAIL (via FormSubmit.co) =====
+   >>> Put your emails on the RECEIVER_EMAIL and SECOND_EMAIL lines below – both get every enquiry. <<<
+   One-time setup: after the website is live, submit one test enquiry. FormSubmit emails an
+   "Activate" link to that address (check Spam) – click it once and all future enquiries arrive normally.
+   The form only works on the live website, not when the file is opened from your computer. */
 (function(){
-  var WEB3FORMS_ACCESS_KEY = '';                                   // <-- paste your Web3Forms key here
-  var RECEIVER_EMAIL       = 'Kausarshabana95@gmail.com';          // <-- used only if no key above
+  var RECEIVER_EMAIL = 'imranbm2011@gmail.com';   // <-- 1st email (main inbox)
+  var SECOND_EMAIL   = 'auspiciousit2@gmail.com';                            // <-- 2nd email: put a second address here (leave '' for none)
   var form = document.getElementById('enquiryForm'); if(!form) return;
   var status = document.getElementById('enquiryStatus'), btn = document.getElementById('enquirySubmit');
   var date = document.getElementById('startDate');
@@ -1544,19 +1542,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if(bad.length){ bad[0].focus(); say('Please fill in all the required fields.','err'); return; }
     var em=form.parentEmail; if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em.value.trim())){ em.focus(); say('Please enter a valid email address.','err'); return; }
     if(form._honey.value){ form.reset(); say('Thank you! Your enquiry has been sent.','ok'); return; }   // spam bot
-    var subject='New daycare enquiry: '+form.childName.value.trim()+' (parent: '+form.parentName.value.trim()+')';
-    var data = new FormData(form); data.delete('_honey');
-    var url, opts;
-    if(WEB3FORMS_ACCESS_KEY){
-      data.append('access_key',WEB3FORMS_ACCESS_KEY); data.append('subject',subject);
-      data.append('from_name','Banana Tree Daycare website'); data.append('name',form.parentName.value.trim()); data.append('email',em.value.trim());
-      url='https://api.web3forms.com/submit';
-    } else {
-      data.append('_subject',subject); data.append('_template','table'); data.append('_captcha','false');
-      url='https://formsubmit.co/ajax/'+encodeURIComponent(RECEIVER_EMAIL);
-    }
+    var data = new FormData(form);
+    data.append('_subject','New daycare enquiry: '+form.childName.value.trim()+' (parent: '+form.parentName.value.trim()+')');
+    data.append('_replyto',em.value.trim()); if(SECOND_EMAIL) data.append('_cc',SECOND_EMAIL); data.append('_template','table'); data.append('_captcha','false');
     btn.disabled = true; say('Sending…');
-    fetch(url,{method:'POST',headers:{'Accept':'application/json'},body:data})
+    fetch('https://formsubmit.co/ajax/'+encodeURIComponent(RECEIVER_EMAIL),{method:'POST',headers:{'Accept':'application/json'},body:data})
       .then(function(r){ return r.json().catch(function(){return {};}).then(function(j){
         if(!r.ok || j.success===false || j.success==='false') throw new Error(j.message||('Error '+r.status));
         return j; }); })
