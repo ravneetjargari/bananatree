@@ -1522,13 +1522,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </script>
 <script>
-/* ===== Enquiry form =====
-   Submissions are emailed to the address below (via FormSubmit.co – free, no server needed).
-   >>> Change RECEIVER_EMAIL to the inbox that should receive the enquiries. <<<
-   The first time anyone submits, FormSubmit sends ONE confirmation email to that address;
-   click the link in it once to activate – after that every enquiry arrives in the inbox. */
+/* ===== Enquiry form – sends every submission to your email =====
+   OPTION A (recommended, most reliable): Web3Forms
+     1. Go to https://web3forms.com, type the email that should receive enquiries, click "Create Access Key".
+     2. They email you a key. Paste it between the quotes on the WEB3FORMS_ACCESS_KEY line below.
+   OPTION B (used automatically if no key is pasted): FormSubmit.co -> RECEIVER_EMAIL below.
+     Needs a one-time activation: after the first test submit, open the email FormSubmit sends to
+     RECEIVER_EMAIL (check Spam) and click "Activate". The website must be live online, not opened as a file. */
 (function(){
-  var RECEIVER_EMAIL = 'Kausarshabana95@gmail.com';
+  var WEB3FORMS_ACCESS_KEY = '';                                   // <-- paste your Web3Forms key here
+  var RECEIVER_EMAIL       = 'Kausarshabana95@gmail.com';          // <-- used only if no key above
   var form = document.getElementById('enquiryForm'); if(!form) return;
   var status = document.getElementById('enquiryStatus'), btn = document.getElementById('enquirySubmit');
   var date = document.getElementById('startDate');
@@ -1536,17 +1539,29 @@ document.addEventListener('DOMContentLoaded', () => {
   function say(msg,cls){ status.textContent=msg; status.className='enquiry-status '+(cls||''); }
   form.addEventListener('submit', function(e){
     e.preventDefault();
+    if(location.protocol==='file:'){ say('The form only works when the website is live online (not opened from a file on your computer).','err'); return; }
     var bad = [].filter.call(form.querySelectorAll('[required]'), function(f){ return !f.value.trim(); });
     if(bad.length){ bad[0].focus(); say('Please fill in all the required fields.','err'); return; }
-    var em=form.parentEmail; if(em && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em.value.trim())){ em.focus(); say('Please enter a valid email address.','err'); return; }
-    var data = new FormData(form);
-    data.append('_subject','New daycare enquiry: '+form.childName.value.trim()+' (parent: '+form.parentName.value.trim()+')');
-    data.append('_template','table'); data.append('_captcha','false');
+    var em=form.parentEmail; if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em.value.trim())){ em.focus(); say('Please enter a valid email address.','err'); return; }
+    if(form._honey.value){ form.reset(); say('Thank you! Your enquiry has been sent.','ok'); return; }   // spam bot
+    var subject='New daycare enquiry: '+form.childName.value.trim()+' (parent: '+form.parentName.value.trim()+')';
+    var data = new FormData(form); data.delete('_honey');
+    var url, opts;
+    if(WEB3FORMS_ACCESS_KEY){
+      data.append('access_key',WEB3FORMS_ACCESS_KEY); data.append('subject',subject);
+      data.append('from_name','Banana Tree Daycare website'); data.append('name',form.parentName.value.trim()); data.append('email',em.value.trim());
+      url='https://api.web3forms.com/submit';
+    } else {
+      data.append('_subject',subject); data.append('_template','table'); data.append('_captcha','false');
+      url='https://formsubmit.co/ajax/'+encodeURIComponent(RECEIVER_EMAIL);
+    }
     btn.disabled = true; say('Sending…');
-    fetch('https://formsubmit.co/ajax/'+encodeURIComponent(RECEIVER_EMAIL),{method:'POST',headers:{'Accept':'application/json'},body:data})
-      .then(function(r){ return r.json().then(function(j){ if(!r.ok||j.success==='false'||j.success===false) throw new Error(j.message||'failed'); return j; }); })
+    fetch(url,{method:'POST',headers:{'Accept':'application/json'},body:data})
+      .then(function(r){ return r.json().catch(function(){return {};}).then(function(j){
+        if(!r.ok || j.success===false || j.success==='false') throw new Error(j.message||('Error '+r.status));
+        return j; }); })
       .then(function(){ form.reset(); say('Thank you! Your enquiry has been sent – we’ll be in touch soon.','ok'); })
-      .catch(function(){ say('Sorry, something went wrong. Please call 825-561-6030 or email '+RECEIVER_EMAIL+'.','err'); })
+      .catch(function(err){ console.error('Enquiry form error:',err); say('Sorry, we couldn’t send that ('+(err.message||'network error')+'). Please call 825-561-6030 or email '+RECEIVER_EMAIL+'.','err'); })
       .then(function(){ btn.disabled=false; });
   });
 })();
